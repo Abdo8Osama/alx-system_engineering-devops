@@ -1,42 +1,29 @@
 #!/usr/bin/python3
-"""Export data from an API to JSON format.
-"""
-from json import dumps
-import requests
-from sys import argv
+"""Exports data in the JSON format"""
 
-if __name__ == '__main__':
-    # Checks if the argument can be converted to a number
-    try:
-        emp_id = int(argv[1])
-    except ValueError:
-        exit()
+if __name__ == "__main__":
 
-    # Main formatted names to API uris and filenames
-    api_url = 'https://jsonplaceholder.typicode.com'
-    user_uri = '{api}/users/{id}'.format(api=api_url, id=emp_id)
-    todo_uri = '{user_uri}/todos'.format(user_uri=user_uri)
-    filename = '{emp_id}.json'.format(emp_id=emp_id)
+    import json
+    import requests
+    import sys
 
-    # User Response
-    u_res = requests.get(user_uri).json()
+    userId = sys.argv[1]
+    user = requests.get("https://jsonplaceholder.typicode.com/users/{}"
+                        .format(userId))
+    todos = requests.get('https://jsonplaceholder.typicode.com/todos')
+    todos = todos.json()
 
-    # User TODO Response
-    t_res = requests.get(todo_uri).json()
+    todoUser = {}
+    taskList = []
 
-    # A list of all tasks of an user
-    user_tasks = list()
+    for task in todos:
+        if task.get('userId') == int(userId):
+            taskDict = {"task": task.get('title'),
+                        "completed": task.get('completed'),
+                        "username": user.json().get('username')}
+            taskList.append(taskDict)
+    todoUser[userId] = taskList
 
-    for elem in t_res:
-        data = {
-            'task': elem.get('title'),
-            'completed': elem.get('completed'),
-            'username': u_res.get('username')
-        }
-
-        user_tasks.append(data)
-
-    # Create the new file for the user to save the information
-    # Filename example: `{user_id}.json`
-    with open(filename, 'w', encoding='utf-8') as jsonfile:
-        jsonfile.write(dumps({emp_id: user_tasks}))
+    filename = userId + '.json'
+    with open(filename, mode='w') as f:
+        json.dump(todoUser, f)
