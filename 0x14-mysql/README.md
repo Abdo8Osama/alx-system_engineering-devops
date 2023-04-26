@@ -1,1 +1,1 @@
-# Scripts Functionalities
+# 0x14. Mysql
